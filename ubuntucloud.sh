@@ -53,7 +53,7 @@ qm set $vmid --scsi0 $storage_id:vm-$vmid-disk-0 --ide2 $storage_id:cloudinit --
 # 如果您的公鑰文件在本地計算機的 ~/.ssh/ 目錄中，則可以使用以下命令：
 # ssh-keygen -y -f ~/.ssh/id_rsa > ~/.ssh/id_rsa.pub
 # 然後使用 ~/.ssh/id_rsa.pub 路徑來設置 SSH 金鑰
-qm set $vmid --sshkey <your public ssk key path>
+#qm set $vmid --sshkey <your public ssk key path>
 
 # 啟動虛擬機
 qm start $vmid
