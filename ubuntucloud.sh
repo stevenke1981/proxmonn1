@@ -42,7 +42,7 @@ cpu_type="host"
 sockets=1
 cores=4
 memory=8192
-network_bridge="vmbr1"
+network_bridge="vmbr0"
 network_tag=1310
 
 # 創建虛擬機
