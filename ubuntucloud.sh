@@ -37,7 +37,7 @@ fi
 imagelink="https://cloud-images.ubuntu.com/jammy/current/$imagename"
 wget -O $imagename $imagelink
 
-# 設定 CPU type 為 host, 共 8(2x4) vcpu, 8GB memory, 網路使用 vmbr1(tag 1310, 此為我自己設定的 trunk bridge)
+# 設定 CPU type 為 host, 共 4(1x4) vcpu, 8GB memory, 網路使用 vmbr1(tag 1310, 此為我自己設定的 trunk bridge)
 cpu_type="host"
 sockets=1
 cores=4
