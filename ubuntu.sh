@@ -41,8 +41,12 @@ fi
 # 使用指定的 vmid 創建虛擬機
 qm create $vmid --name "$vm_name" --memory 2048 --net0 virtio,bridge=vmbr0
 
-# 創建一個 32GB 虛擬硬碟
+# 1.創建一個 32GB 虛擬硬碟
 qm set $vmid --scsi1 local:32
+
+# 2. load img to disc
+qm set $vmid --ide2 local:$imagename
+
 
 # 指定光碟開機
 qm set $vmid --boot c
