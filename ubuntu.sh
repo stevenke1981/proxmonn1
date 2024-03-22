@@ -45,7 +45,7 @@ fi
 qm create $vmid --name "$vm_name" --memory 2048 --net0 virtio,bridge=vmbr0
 
 # 設定 SCSI 硬碟
-qm set $vmid --scsihw virtio1 --scsi0 $storage_id:vm-$vmid-disk-1,size=32G
+qm set $vmid --scsihw virtio1 --scsi0 $storage_id:vm-$vmid-disk-0,size=32G
 
 # 將雲端映像檔轉換為 qcow2 格式並導入到存儲池
 if [ ! -f "$storage_id:vm-$vmid-disk-0.qcow2" ]; then
