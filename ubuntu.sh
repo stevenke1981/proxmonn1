@@ -44,8 +44,11 @@ qm create $vmid --name "$vm_name" --memory 2048 --net0 virtio,bridge=vmbr0
 # 將雲端映像檔設為虛擬機的虛擬硬碟
 qm importdisk $vmid "$imagename" local
 
+# 創建一個 32GB 虛擬硬碟
+qm set $vmid --scsi1 local:32
+
 # 設定虛擬機啟動時從雲端映像檔開機
-qm set $vmid --scsi0 local:vm-$vmid-disk-0.qcow2
+qm set $vmid --ide2 local:vm-$vmid-disk-0.qcow2
 
 # 設定虛擬機網路
 qm set $vmid --ipconfig0 ip=dhcp
@@ -57,4 +60,4 @@ qm set $vmid --machine pc-q35-5.2
 # 啟動虛擬機
 qm start $vmid
 
-echo "Ubuntu 22.04 VM $vm_name (ID: $vmid) has been created and started."
+echo "Ubuntu 22.04 VM $vm_name (ID: $vmid) has been created and started with a 32GB virtual disk."
