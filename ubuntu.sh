@@ -12,6 +12,9 @@ read -p "Enter the desired vmid range (1-999): " vmid_range
 # 提示輸入虛擬機名稱
 read -p "Enter a name for the new VM: " vm_name
 
+# 提示輸入存儲池 ID
+read -p "Enter your VM storage ID (e.g. local-zfs): " storage_id  
+
 # 預設映像檔名稱
 imagename="jammy-server-cloudimg-amd64.img"
 
@@ -41,14 +44,14 @@ fi
 # 使用指定的 vmid 創建虛擬機
 qm create $vmid --name "$vm_name" --memory 2048 --net0 virtio,bridge=vmbr0
 
-# 將雲端映像檔設為虛擬機的虛擬硬碟
-qm importdisk $vmid "$imagename" local
+# 將雲端映像檔導入到存儲池
+qm importdisk $vmid "$imagename" $storage_id
 
-# 創建一個 32GB 虛擬硬碟
-qm set $vmid --scsi1 local:32
+# 創建一個 32GB 虛擬硬碟在存儲池
+qm set $vmid --scsi1 $storage_id:vm-$vmid-disk-1,size=32G  
 
 # 設定虛擬機啟動時從雲端映像檔開機
-qm set $vmid --ide2 local:vm-$vmid-disk-0.qcow2
+qm set $vmid --ide2 $storage_id:vm-$vmid-disk-0.qcow2
 
 # 設定虛擬機網路
 qm set $vmid --ipconfig0 ip=dhcp
