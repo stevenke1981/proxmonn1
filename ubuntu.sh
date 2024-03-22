@@ -2,8 +2,8 @@
 
 # 檢查是否為 root 用戶
 if [ "$EUID" -ne 0 ]; then
-    echo "Please run as root"
-    exit 1
+  echo "Please run as root"
+  exit 1
 fi
 
 # 提示輸入期望的 vmid 範圍(1-999)
@@ -15,35 +15,37 @@ read -p "Enter a name for the new VM: " vm_name
 # 預設映像檔名稱
 imagename="jammy-server-cloudimg-amd64.img"
 
-# 預設儲存池 ID
-storage_id="local-lvm"
-
 # 在指定範圍內找到一個可用的 vmid
 for ((i=$vmid_range; i<1000; i++)); do
-    vmid=$(qm status $i 2>/dev/null | grep -w $i)
-    if [ -z "$vmid" ]; then
-        vmid=$i
-        break
-    fi
+  vmid=$(qm status $i 2>/dev/null | grep -w $i)
+  if [ -z "$vmid" ]; then
+    vmid=$i
+    break
+  fi
 done
 
 # 如果在範圍內沒有找到可用的 vmid，則退出
 if [ -z "$vmid" ]; then
-    echo "No available vmid found in the specified range."
-    exit 1
+  echo "No available vmid found in the specified range."
+  exit 1
 fi
 
 # 檢查映像檔是否存在
-if [ ! -f "$imagename" ]; then
-    # 下載 Ubuntu 22.04 雲端映像檔
-    wget "https://cloud-images.ubuntu.com/jammy/current/$imagename"
+if [ -f "$imagename" ]; then
+  echo "Found existing $imagename, using it."
+else
+  # 下載 Ubuntu 22.04 雲端映像檔
+  wget "https://cloud-images.ubuntu.com/jammy/current/$imagename"
 fi
 
 # 使用指定的 vmid 創建虛擬機
-qm create $vmid --name "$vm_name" --memory 2048 --net0 virtio,bridge=vmbr0 --ide0 $storage_id:$imagename
+qm create $vmid --name "$vm_name" --memory 2048 --net0 virtio,bridge=vmbr0
 
-# 創建一個 64G 大小的硬碟
-qm set $vmid --scsihw virtio-scsi-pci --scsi1 $storage_id:vm-$vmid-disk-1,size=64G
+# 創建一個 32GB 虛擬硬碟
+qm set $vmid --scsi1 local:32
+
+# 指定光碟開機
+qm set $vmid --boot c
 
 # 設定虛擬機網路
 qm set $vmid --ipconfig0 ip=dhcp
