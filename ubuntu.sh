@@ -34,21 +34,16 @@ if [ -z "$vmid" ]; then
 fi
 
 # 檢查映像檔是否存在
-if [ -f "$imagename" ]; then
-    echo "Found existing $imagename, using it."
-else
+if [ ! -f "$imagename" ]; then
     # 下載 Ubuntu 22.04 雲端映像檔
     wget "https://cloud-images.ubuntu.com/jammy/current/$imagename"
 fi
 
 # 使用指定的 vmid 創建虛擬機
-qm create $vmid --name "$vm_name" --memory 2048 --net0 virtio,bridge=vmbr0
+qm create $vmid --name "$vm_name" --memory 2048 --net0 virtio,bridge=vmbr0 --ide0 $storage_id:$imagename
 
-# 設定 SCSI 硬碟，將img文件掛載到虛擬機上
-qm set $vmid --scsihw virtio1 --scsi0 $storage_id:vm-$vmid-disk-1,size=32G
-
-# 掛載img文件到虛擬機上
-qm set $vmid --ide2 $storage_id:vm-$vmid-disk-0,$imagename
+# 創建一個 64G 大小的硬碟
+qm set $vmid --scsihw virtio-scsi-pci --scsi1 $storage_id:vm-$vmid-disk-1,size=64G
 
 # 設定虛擬機網路
 qm set $vmid --ipconfig0 ip=dhcp
