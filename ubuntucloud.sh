@@ -37,8 +37,17 @@ fi
 imagelink="https://cloud-images.ubuntu.com/jammy/current/$imagename"
 wget -O $imagename $imagelink
 
-# 使用指定的 vmid 創建虛擬機
-qm create $vmid --name "$vm_name" --memory 2048 --net0 virtio,bridge=vmbr0
+# 設定 CPU type 為 host, 共 8(2x4) vcpu, 8GB memory, 網路使用 vmbr1(tag 1310, 此為我自己設定的 trunk bridge)
+cpu_type="host"
+sockets=1
+cores=4
+memory=8192
+network_bridge="vmbr1"
+network_tag=1310
+
+# 創建虛擬機
+qm create $vmid --cpu $cpu_type --sockets $sockets --cores $cores --memory $memory --net0 virtio,bridge=$network_bridge,tag=$network_tag
+
 
 # 將 cloud image 匯入到指定的 storage 作為虛擬機的第一個 disk
 qm importdisk $vmid "$imagename" $storage_id
