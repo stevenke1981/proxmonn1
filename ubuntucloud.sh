@@ -33,41 +33,29 @@ if [ -z "$vmid" ]; then
   exit 1
 fi
 
-# 檢查映像檔是否存在
-if [ -f "$imagename" ]; then
-  echo "Found existing $imagename, using it."
-else
-  # 下載 Ubuntu 22.04 雲端映像檔
-  wget "https://cloud-images.ubuntu.com/jammy/current/$imagename"
-fi
-
-# 檢查 qcow2 格式的映像檔是否存在
-qcow2_image="${imagename%.img}.qcow2"
-if [ -f "$qcow2_image" ]; then
-  echo "Found existing $qcow2_image, using it."
-else
-  # 轉換為 qcow2 格式
-  qemu-img convert -f raw -O qcow2 "$imagename" "$qcow2_image"
-fi
+# 下載 Ubuntu 22.04 雲端映像檔
+imagelink="https://cloud-images.ubuntu.com/jammy/current/$imagename"
+wget -O $imagename $imagelink
 
 # 使用指定的 vmid 創建虛擬機
 qm create $vmid --name "$vm_name" --memory 2048 --net0 virtio,bridge=vmbr0
 
-# 將 qcow2 格式的映像檔導入到存儲池
-qm importdisk $vmid "$qcow2_image" $storage_id
+# 將 cloud image 匯入到指定的 storage 作為虛擬機的第一個 disk
+qm importdisk $vmid "$imagename" $storage_id
 
-# 設定虛擬機硬碟設備以及開機設置
-qm set $vmid --scsi0 $storage_id:vm-$vmid-disk-0
-qm set $vmid --boot c
+# 設定 VM 細節
+# 設定 cloud-init 的功能以 cd-rom 的形式掛載
+# serial 一定要加，否則 cloud image 會無法正常開機
+qm set $vmid --scsi0 $storage_id:vm-$vmid-disk-0 --ide2 $storage_id:cloudinit --boot c --bootdisk scsi0 --serial0 socket
 
-# 設定虛擬機網路
-qm set $vmid --ipconfig0 ip=dhcp
-
-# 允許 VRDE (虛擬機遠端桌面連線)
-qm set $vmid --vga qxl
-qm set $vmid --machine pc-q35-5.2
+# 設定 SSH key (cloud image 預設是無法使用密碼登入，必須設定 SSH key)
+# 請將 <your public ssk key path> 替換為您的公共 SSH 金鑰文件的路徑
+# 如果您的公鑰文件在本地計算機的 ~/.ssh/ 目錄中，則可以使用以下命令：
+# ssh-keygen -y -f ~/.ssh/id_rsa > ~/.ssh/id_rsa.pub
+# 然後使用 ~/.ssh/id_rsa.pub 路徑來設置 SSH 金鑰
+qm set $vmid --sshkey <your public ssk key path>
 
 # 啟動虛擬機
 qm start $vmid
 
-echo "Ubuntu 22.04 VM $vm_name (ID: $vmid) has been created and started with a 32GB virtual disk."
+echo "Ubuntu 22.04 VM $vm_name (ID: $vmid) has been created and started."
