@@ -46,8 +46,7 @@ network_bridge="vmbr1"
 network_tag=1310
 
 # 創建虛擬機
-qm create $vmid --cpu $cpu_type --sockets $sockets --cores $cores --memory $memory --net0 virtio,bridge=$network_bridge,tag=$network_tag
-
+qm create $vmid --name "$vm_name" --cpu $cpu_type --sockets $sockets --cores $cores --memory $memory --net0 virtio,bridge=$network_bridge,tag=$network_tag
 
 # 將 cloud image 匯入到指定的 storage 作為虛擬機的第一個 disk
 qm importdisk $vmid "$imagename" $storage_id
@@ -56,13 +55,6 @@ qm importdisk $vmid "$imagename" $storage_id
 # 設定 cloud-init 的功能以 cd-rom 的形式掛載
 # serial 一定要加，否則 cloud image 會無法正常開機
 qm set $vmid --scsi0 $storage_id:vm-$vmid-disk-0 --ide2 $storage_id:cloudinit --boot c --bootdisk scsi0 --serial0 socket
-
-# 設定 SSH key (cloud image 預設是無法使用密碼登入，必須設定 SSH key)
-# 請將 <your public ssk key path> 替換為您的公共 SSH 金鑰文件的路徑
-# 如果您的公鑰文件在本地計算機的 ~/.ssh/ 目錄中，則可以使用以下命令：
-# ssh-keygen -y -f ~/.ssh/id_rsa > ~/.ssh/id_rsa.pub
-# 然後使用 ~/.ssh/id_rsa.pub 路徑來設置 SSH 金鑰
-#qm set $vmid --sshkey <your public ssk key path>
 
 # 啟動虛擬機
 qm start $vmid
