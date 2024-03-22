@@ -2,8 +2,8 @@
 
 # 檢查是否為 root 用戶
 if [ "$EUID" -ne 0 ]; then
-  echo "Please run as root"
-  exit 1
+ echo "Please run as root"
+ exit 1
 fi
 
 # 提示輸入期望的 vmid 範圍(1-999)
@@ -20,38 +20,38 @@ storage_id="local-lvm"
 
 # 在指定範圍內找到一個可用的 vmid
 for ((i=$vmid_range; i<1000; i++)); do
-  vmid=$(qm status $i 2>/dev/null | grep -w $i)
-  if [ -z "$vmid" ]; then
-    vmid=$i
-    break
-  fi
+ vmid=$(qm status $i 2>/dev/null | grep -w $i)
+ if [ -z "$vmid" ]; then
+  vmid=$i
+  break
+ fi
 done
 
 # 如果在範圍內沒有找到可用的 vmid，則退出
 if [ -z "$vmid" ]; then
-  echo "No available vmid found in the specified range."
-  exit 1
+ echo "No available vmid found in the specified range."
+ exit 1
 fi
 
 # 檢查映像檔是否存在
 if [ -f "$imagename" ]; then
-  echo "Found existing $imagename, using it."
+ echo "Found existing $imagename, using it."
 else
-  # 下載 Ubuntu 22.04 雲端映像檔
-  wget "https://cloud-images.ubuntu.com/jammy/current/$imagename"
+ # 下載 Ubuntu 22.04 雲端映像檔
+ wget "https://cloud-images.ubuntu.com/jammy/current/$imagename"
 fi
 
 # 使用指定的 vmid 創建虛擬機
 qm create $vmid --name "$vm_name" --memory 2048 --net0 virtio,bridge=vmbr0
 
-# 將雲端映像檔導入到存儲池
-qm importdisk $vmid "$imagename" $storage_id
+# 將雲端映像檔轉換為 qcow2 格式並導入到存儲池
+qm importdisk $vmid "$imagename" $storage_id --format qcow2
 
 # 創建一個 32GB 虛擬硬碟在存儲池
 qm set $vmid --scsi1 $storage_id:vm-$vmid-disk-1,size=32G
 
 # 設定虛擬機啟動時從雲端映像檔開機
-qm set $vmid --ide2 $storage_id:vm-$vmid-disk-0.qcow2
+qm set $vmid --ide2 $storage_id:vm-$vmid-disk-1.qcow2
 
 # 設定虛擬機網路
 qm set $vmid --ipconfig0 ip=dhcp
